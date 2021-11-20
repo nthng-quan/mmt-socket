@@ -1,5 +1,5 @@
 # Đồ án Mạng máy tính - Lập trình socket - HCMUS - 20CLC05
-# Đề 1 - Danh bạ số
+# Đề 1 - Danh bạ số - TCP
 ## Nội dung
 Viết chương trình gồm 1 ứng dụng server và 1 ứng dụng client để quản lý một “danh bạ số”
 sử dụng Socket, với giao thức TCP tại tầng Transport. Danh bạ này quản lý các thông tin
