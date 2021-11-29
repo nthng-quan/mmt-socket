@@ -139,9 +139,6 @@ button_confirm = Button(
 
 # img = Image.open(io.BytesIO(data[1]))
 # img.show()
-# playboyCarti
-# 969420
-# h0mebboicr34t1n@gmail.com
 
 if __name__ == "__main__":
     try:
