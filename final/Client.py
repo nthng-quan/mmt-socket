@@ -26,11 +26,15 @@ SUCCESS = "success"
 MAX_BUFFER_SIZE = 4096*500
 
 # --- SQL, Login credentials --- #
-
-SERVER = "WINDOWS\SQL19"
-DATABASE = "SOCKET_ACCOUNT"
-UID = "hquan"
-PWD = "26102002"
+#  AZURE HOST
+SERVER = "socket-skrt.database.windows.net"
+DATABASE = "SocketProject"
+UID = "nthquan"
+PWD = "socket123#"
+# SERVER = "WINDOWS\SQL19"
+# DATABASE = "SOCKET_ACCOUNT"
+# UID = "hquan"
+# PWD = "26102002"
 
 # ----------- Request ---------- #
 
