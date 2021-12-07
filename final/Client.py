@@ -1,5 +1,3 @@
-import pyodbc
-
 import pickle
 
 import os,io
@@ -49,16 +47,6 @@ HALT = "halt"
 # ------------------------------ #
 
 SELECT_FILE_PATH = ""
-
-
-con_DB = pyodbc.connect('\
-    DRIVER={ODBC Driver 17 for SQL Server};\
-    SERVER='+SERVER+';\
-    DATABASE='+DATABASE+';\
-    UID='+UID+';\
-    PWD='+PWD+';'
-)
-cursor = con_DB.cursor()
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, SERVER_PORT))
