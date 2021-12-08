@@ -37,10 +37,16 @@ HALT = "halt"
 
 # --- SQL, Login credentials --- #
 
-SERVER = "WINDOWS\SQL19"
-DATABASE = "SOCKET_ACCOUNT"
-UID = "hquan"
-PWD = "26102002"
+#  AZURE HOST
+SERVER = "socket-skrt.database.windows.net"
+DATABASE = "SocketProject"
+UID = "nthquan"
+PWD = "socket123#"
+
+# SERVER = "WINDOWS\SQL19"
+# DATABASE = "SOCKET_ACCOUNT"
+# UID = "hquan"
+# PWD = "26102002"
 
 # ------------------------------ #
 def fetch_data(conn):
