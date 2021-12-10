@@ -1,57 +1,47 @@
 import socket
-import threading 
 import pyodbc
+import threading
+
 import pickle
 
-import os,io
+import os
 from io import BytesIO
 
-import tkinter as tk
-from tkinter import *
-from tkinter import ttk
-from tkinter.ttk import *
-from tkinter import filedialog, messagebox, Frame
+from PIL import Image
+from time import sleep
 
-from PIL import Image, ImageTk
+from config import *
 
-HOST = "127.0.0.1" 
-SERVER_PORT = 65432
-FORMAT = "utf8"
+countTotalClient = 0
+countLiveClient  = 0
 
-LOGIN = "login"
-SIGNUP = "signup"
+# -------------------------------- #
 
-FAIL = "fail"
-GOOD = "good"
-SUCCESS = "success"
+con_DB = pyodbc.connect ('\
+    DRIVER={ODBC Driver 17 for SQL Server};\
+    SERVER='+SERVER+';\
+    DATABASE='+DATABASE+';\
+    UID='+UID+';\
+    PWD='+PWD+';'
+)
+cursor = con_DB.cursor()
 
-# ---------- DB request ---------#
+server = socket.socket (
+    socket.AddressFamily.AF_INET,
+    socket.SocketKind.SOCK_STREAM
+)
+server.bind ((
+    HOST,
+    SERVER_PORT
+))
 
-FIND_BY_ID = "find_by_id"
-SAVE_ALL_IMGS = "save_all_imgs"
-INSERT = "insert"
-FETCH_DATA = "fetch_data"
-CHECK = "check"
-DISCONNECT = "disconnect"
-HALT = "halt"
+server.listen()
 
-# --- SQL, Login credentials --- #
-
-#  AZURE HOST
-SERVER = "socket-skrt.database.windows.net"
-DATABASE = "SocketProject"
-UID = "nthquan"
-PWD = "socket123#"
-
-# SERVER = "WINDOWS\SQL19"
-# DATABASE = "SOCKET_ACCOUNT"
-# UID = "hquan"
-# PWD = "26102002"
-
-# ------------------------------ #
-def fetch_data(conn):
+def fetch_data(conn: socket):
     # execute query
-    cursor.execute("select * from Phonebook")
+    cursor.execute(
+        'select * from Phonebook'
+    )
     data = cursor.fetchall()
 
     # send query respose
@@ -60,20 +50,30 @@ def fetch_data(conn):
 
     # initialize data
     max_rows = len(data)
+    
     conn.sendall(str(max_rows).encode(FORMAT))
     conn.recv(1024) # receive response 2
+   
     index = 0
 
     while (index < max_rows):
         data_to_bytes = pickle.dumps(data[index], pickle.HIGHEST_PROTOCOL)
+        
         conn.sendall(data_to_bytes) # send data in bytes
         conn.recv(1024) # receive response 3
+        
+        sleep(0.001)
+
         index += 1
 
-def save_all_images(conn):
+def save_all_images(conn: socket):
     # execute query
     try:
-        cursor.execute("select Avatar, FullName from Phonebook")
+        cursor.execute(
+            "select\
+            Avatar,\
+            FULLNAME from Phonebook"
+        )
         data = cursor.fetchall()
 
         # send query respose
@@ -91,18 +91,27 @@ def save_all_images(conn):
             data_to_bytes = pickle.dumps(data[index], pickle.HIGHEST_PROTOCOL)
             conn.sendall(data_to_bytes) # send data in bytes
             conn.recv(1024) # receive response 3
+            
+            sleep(0.001)
 
             index += 1
-    except Exception as e:
-        messagebox.showinfo("Error: unable to fetch data", e)
 
-def find_by_id(conn):
+    except Exception as e:
+        print("Error: unable to fetch data -> ", e)
+
+def find_by_id(conn: socket):
     # receive ID
     id_to_search = conn.recv(1024).decode(FORMAT)
     conn.send(id_to_search.encode(FORMAT)) # response 1
     
     # database exec
-    cursor.execute("select * from PHONEBOOK where ID = ?", id_to_search)
+    cursor.execute(
+        "select * from\
+        Phonebook where\
+        ID = ?",
+
+        id_to_search
+    )
     data = cursor.fetchone()
     
     # if cant find data
@@ -125,28 +134,57 @@ def find_by_id(conn):
     # receive response
     conn.recv(1024).decode(FORMAT)
 
-def check_valid_phone_number(conn):
+def check_valid_phone_number(conn: socket):
     phone_number = conn.recv(1024).decode(FORMAT)
-    cursor.execute("select id from PHONEBOOK where PHONENUMBER = ?", phone_number)
+    conn.send(phone_number) # response 1
+
+    cursor.execute (
+        "select \
+        ID from \
+        Phonebook where\
+        Phonenumber=?",
+
+        phone_number
+    )
     
     data = cursor.fetchone()
+
     if (data == None):
-        msg = "valid"
+        msg = GOOD
     else:
-        msg = "invalid"
+        msg = FAIL
     
     conn.sendall(msg.encode(FORMAT))
 
-def handleClient(conn: socket, addr):
+def serverStatus():
+    print("# ------------------------------------------------------------ #")
+    print("- Server:", HOST, SERVER_PORT)
+    print("- Total Client handled:", countTotalClient)
+    print("- Client live:", countLiveClient)
+    print("# ------------------------------------------------------------ #")
+
+def serverClose():
+    print("\n# ------------------------------------------------------------ #")
+    print("- [SERVER CLOSED]")
+    print("- Server:", HOST, SERVER_PORT)
+    print("- Client:", countTotalClient)
+    print("# ------------------------------------------------------------ #")
+
+def handleClient(conn: socket, addr: tuple):
+    global countLiveClient
+
+    print("|> [CLIENT_CONNECT] ", addr, "has connected to the server!")
     
-    print("* [CLIENT_CONNECT]: ",conn.getsockname())
+    serverStatus()
     
     request = None
+
     while True:
         request = conn.recv(1024).decode(FORMAT)
-        print("client ",addr, "request", request)
+        print("-  Client ", addr, "request", request)
         
         if (request == CHECK):
+            conn.sendall(request.encode(FORMAT))
             check_valid_phone_number(conn)
         
         if (request == FIND_BY_ID):
@@ -162,48 +200,52 @@ def handleClient(conn: socket, addr):
             save_all_images(conn)
 
         if (request == DISCONNECT):
+            countLiveClient -= 1
             conn.sendall(request.encode(FORMAT))
+
             break
     
     print("Client" , addr, "finished")
-    print("*** [CLIENT_DISCONNECT]",conn.getsockname(), "closed !")
+    print("\n|> [CLIENT_DISCONNECT]", addr, "has disconnected !")
+
+    serverStatus()
     conn.close()
 
-# ----- MAIN ----- #
+def runServer():
+    global countTotalClient
+    global countLiveClient
 
-con_DB = pyodbc.connect('\
-    DRIVER={ODBC Driver 17 for SQL Server};\
-    SERVER='+SERVER+';\
-    DATABASE='+DATABASE+';\
-    UID='+UID+';\
-    PWD='+PWD+';'
-)
-cursor = con_DB.cursor()
+    print("[SERVER SIDE - LOGs]")
+    print("- Server:", HOST, SERVER_PORT)
+    print("> Server Ready")
+    print("> Waiting for Client...\n")
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-
-s.bind((HOST, SERVER_PORT))
-s.listen()
-
-print("SERVER SIDE")
-print("server:", HOST, SERVER_PORT)
-print("Waiting for Client")
-
-countClient = 0
-
-while TRUE:
     try:
-        conn, addr = s.accept()
-        thr = threading.Thread(target=handleClient, args=(conn,addr))
-        thr.daemon = False
-        thr.start()
+        while True:
+            conn, addr   = server.accept()
+            
+            clientThread = threading.Thread (
+                target   = handleClient,
+                args     = (conn, addr)
+            )
+            
+            clientThread.daemon = False
+            clientThread.start()
+            
+            countTotalClient += 1
+            countLiveClient  += 1
 
-    except:
-        print("Error")
+    except Exception as error:
+        print("|> Error ->", error)
+        serverClose()
 
-    countClient += 1
+        server.close()
+    
+    finally:
+        serverClose()
+        serverStatus()
 
-print("End")
-
-s.close()
-con_DB.close()
+        server.close()
+        
+if __name__ == "__main__":
+    runServer()
