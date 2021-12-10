@@ -7,11 +7,13 @@ các thành viên trong 1 tổ chức. Thông tin 1 thành viên gồm: mã số
 điện thoại, email, hình ảnh đại diện (avatar). Danh bạ được lưu trữ tại server cùng với các file hình ảnh, server
 cung cấp các dịch vụ
 để client có thể truy vấn danh bạ (danh sách các thành viên) và truy vấn thông tin từng thành viên.
-
 ## Thành viên
 
-| MSSV          | Họ tên                    |
-| ------------- |:-------------------------:|
-| 20127083      | Nguyễn Trung Tín          |
+| MSSV            | Họ tên                                |
+| -------------- |:-----------------------------:|
+| 20127083      | Nguyễn Trung Tín              |
 | 20127088      | Nguyễn Thiện Hoàng Trí    |
 | 20127603      | Ninh Trần Hoàng Quân      |
+
+## Download Microsoft® ODBC Driver 17 for SQL Server®
+https://www.microsoft.com/en-us/download/details.aspx?id=56567
