@@ -17,3 +17,5 @@ cung cấp các dịch vụ
 
 ## Download Microsoft® ODBC Driver 17 for SQL Server®
 https://www.microsoft.com/en-us/download/details.aspx?id=56567
+## Clip demo
+https://www.youtube.com/watch?v=j5yTspZRdHg
